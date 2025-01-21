@@ -1,0 +1,731 @@
+/*
+* Alexia Morales - Rodriguez
+* ICS 4U1-02
+* Game.java
+* June 12 2024
+* This program will run the battleship game using 2D arrays and other concepts learnt this year
+*/
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.time.*;
+
+public class Game {
+   static boolean placement = true;
+   static boolean round = true;
+
+   public static void main(String[] args) throws InterruptedException {
+       exit: {
+           Scanner s = new Scanner(System.in);
+           Random random = new Random();
+
+           // This is an array that will store letters for the column
+           String alphabet[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
+           // This is an array that will store numbers for the rows
+           String numbers[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+           boolean battleship = true;
+           while (battleship) {
+               battleship: {
+                   // Beautiful intro and instruction to game
+                   System.out.println("\nWELCOME TO BATTLESHIP --> RODRIGUEZ STYLE!!!");
+                   System.out.println(
+                           "\nHow to play: \n~There are two players in battleship: You and the Computer.\n~You each possess 5 boats with lengths of 5,4,3,2,1 squares.\n~You will be asked to place each of your boats on the grid either vertically or horizontally (this will be kept hidden from your opponent).\n~When you have placed your boats (without your opponent knowing the location) you will then begin fighting.\n~You will \"send\" coordinates to your fighter and drop a bomb in said location to try and hit your opponents boat.\n~Because you don't know where their boats are this game will be challeneging. However, whoever manages to destroy all of the opponents boats first will win.\n\n GOOD LUCK AND PLAY STRATEGICALLY!\n\n");
+
+                   // To print your boat
+                   String gridP[][] = new String[11][11]; // 2D array containing the grid for player
+                   gridP = gridOut(); // Inserts basic structure to grid
+                   ocean(gridP); // Prints out grid
+
+                   System.out.println("\n\nLet's start placing your boats!");
+
+                   boolean check = true;
+                   // Loop to place the boats
+                   for (int ctr = 5; ctr > 0; ctr--) {
+                       check = true;
+                       do {
+                           System.out.println();
+                           noRepetition: { // Label for the in game loop
+                               System.out.println(
+                                       "How would you like to place your " + ctr
+                                               + " length ship? Enter 1 for vertically or anything else for horizontally.");
+                               String orientation = s.nextLine();
+                               String letter;
+                               String num;
+
+                               // Completing the vertical ships
+                               if (orientation.equals("1")) {
+                                   boolean nice = false;
+                                   boolean mean = false;
+                                   System.out.println("Which column (letter) are you placing the ship in?");
+                                   letter = s.nextLine().toUpperCase();
+                                   for (int a = 0; a < alphabet.length; a++) {
+                                       if (letter.equals(alphabet[a])) {
+                                           nice = true;
+                                       }
+                                   }
+                                   if (nice == false) {
+                                       System.out.println("Please enter a valid letter and try again.");
+                                       check = true;
+                                       break noRepetition;
+                                   }
+
+                                   System.out.println(
+                                           "Which row (number) would you like the top of the ship to start at? (only enter a number from 1 to "
+                                                   + (10 - ctr + 1) + " due to size of ship)");
+                                   num = s.nextLine();
+                                   for (int n = 0; n < (10 - ctr + 1); n++) {
+                                       if (num.equals(numbers[n])) {
+                                           mean = true;
+                                       }
+                                   }
+                                   if (mean == false) {
+                                       System.out.println("Please enter a valid number and try again.");
+                                       check = true;
+                                       break noRepetition;
+                                   }
+
+                               } else { // Completing the horizontal ships
+                                   boolean nice = false;
+                                   boolean mean = false;
+                                   System.out.println(
+                                           "Which column (letter) would you like the top of the ship to start at? (Only enter a letter from A to "
+                                                   + alphabet[10 - ctr] + ")");
+                                   letter = s.nextLine().toUpperCase();
+                                   for (int a = 0; a <= (10 - ctr); a++) {
+                                       if (letter.equals(alphabet[a]))
+                                           nice = true;
+                                   }
+                                   if (nice == false) {
+                                       System.out.println("Please enter a valid letter and try again.");
+                                       check = true;
+                                       break noRepetition;
+                                   }
+
+                                   System.out.println("Which row (number) are you placing the ship in?");
+                                   num = s.nextLine();
+                                   for (int n = 0; n < numbers.length; n++) {
+                                       if (num.equals(numbers[n]))
+                                           mean = true;
+                                   }
+                                   if (mean == false) {
+                                       System.out.println("Please enter a valid number and try again.");
+                                       check = true;
+                                       break noRepetition;
+                                   }
+
+                               }
+
+                               // This part finds the row and column the user put in and prints out the new
+                               // grid with the boat they placed
+                               letter += "  ";
+                               num += " ";
+                               int c = Arrays.binarySearch(gridP[0], letter);
+                               int r = 10;
+                               for (int n = 1; n < 11; n++) {
+                                   int hint = Arrays.binarySearch(gridP[n], num);
+                                   if (hint > -1) {
+                                       r = n;
+                                   }
+                               }
+
+                               if (orientation.equals("1")) {
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (gridP[r + loop][c].equals("[S]")) {// If boat croses another
+                                           int hello = loop; // Variable of the loop it's on
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridP[r + loop][c] = "[_]";
+
+                                           }
+                                           ocean(gridP);
+                                           System.out.println(
+                                                   "You cannot cross with another ship. Please try placing the "
+                                                           + ctr + " length ship again, and somewhere appropriate");
+                                           check = true;
+                                           break noRepetition;
+                                       }
+                                       if (gridP[r + loop][c].equals("[+]")) {// If boat comes too close to another
+                                           int hello = loop; // Variable of the loop it's on
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridP[r + loop][c] = "[_]";
+                                           }
+                                           ocean(gridP);
+                                           System.out.println(
+                                                   "You cannot place your ship in this location because it is too close to another. Please try placing the "
+                                                           + ctr + " length ship again, and somewhere appropriate");
+                                           check = true;
+                                           break noRepetition;
+                                       }
+
+                                       // Places values onto grid
+                                       gridP[r + loop][c] = "[S]";
+                                   }
+                                   // Code that puts +'s so the boats can't intersect or be too close for vertical
+                                   if (r > 1) {// Top
+                                       gridP[r - 1][c] = "[+]";
+                                       if (c > 1) {
+                                           gridP[r - 1][c - 1] = "[+]";
+                                       }
+                                       if (c < 10) {
+                                           gridP[r - 1][c + 1] = "[+]";
+                                       }
+                                   }
+                                   if (r + ctr < 10) {// Bottom
+                                       gridP[r + ctr][c] = "[+]";
+                                       if (c < 10) {
+                                           gridP[r + ctr][c + 1] = "[+]";
+                                       }
+                                       if (c > 1)
+                                           gridP[r + ctr][c - 1] = "[+]";
+                                   }
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (c > 1) {// Left
+                                           gridP[r + loop][c - 1] = "[+]";
+                                       }
+                                       if (c < 10) {// Right
+                                           gridP[r + loop][c + 1] = "[+]";
+                                       }
+                                   }
+                                   check = false;
+                               } else {
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (gridP[r][c + loop].equals("[S]")) {// If boat croses another
+                                           int hello = loop; // Variable of the loop it's on
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridP[r][c + loop] = "[_]";
+
+                                           }
+                                           ocean(gridP);
+                                           System.out.println(
+                                                   "You cannot cross with another ship. Please try placing the "
+                                                           + ctr + " length ship again, and somewhere appropriate");
+                                           check = true;
+                                           break noRepetition;
+                                       }
+                                       if (gridP[r][c + loop].equals("[+]")) { // If boat is too close to another
+                                                                               // horizontally
+                                           int hello = loop;
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridP[r][c + loop] = "[_]";
+                                           }
+                                           ocean(gridP);
+                                           System.out.println(
+                                                   "You cannot place your ship in this location because it is too close to another. Please try placing the "
+                                                           + ctr + " length ship again, and somewhere appropriate");
+                                           check = true;
+                                           break noRepetition;
+                                       }
+
+                                       // Places values onto grid
+                                       gridP[r][c + loop] = "[S]";
+
+                                   }
+                                   // Code that puts +'s so the boats can't intersect or be too close for
+                                   // horizontal
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (r > 1) {// Top
+                                           gridP[r - 1][c + loop] = "[+]";
+                                       }
+                                       if (r < 10) {// Bottom
+                                           gridP[r + 1][c + loop] = "[+]";
+                                       }
+                                   }
+                                   if (c > 1) {// Left
+                                       gridP[r][c - 1] = "[+]";
+                                       if (r > 1) {
+                                           gridP[r - 1][c - 1] = "[+]";
+                                       }
+                                       if (r < 10) {
+                                           gridP[r + 1][c - 1] = "[+]";
+                                       }
+
+                                   }
+                                   if (c + ctr < 10) {// Right
+                                       gridP[r][c + ctr] = "[+]";
+                                       if (r > 1) {
+                                           gridP[r - 1][c + ctr] = "[+]";
+                                       }
+                                       if (r < 10) {
+                                           gridP[r + 1][c + ctr] = "[+]";
+                                       }
+                                   }
+                                   check = false;
+                               }
+
+                               ocean(gridP);
+                               System.out.println();
+                           }
+                       } while (check);
+                   }
+
+                   System.out.println("The computer is now placing its ships...");
+                   TimeUnit.MILLISECONDS.sleep(3000);
+
+                   // Placing for computer
+                   String gridC[][] = new String[11][11]; // Creates a new board for the computer (where it placed its
+                                                          // ships)
+                   String gridF[][] = new String[11][11]; // Creates a board that only the player sees (enemy ships
+                                                          // hidden)
+                   gridC = gridOut();
+                   gridF = gridOut();
+                   check = true;
+                   for (int ctr = 5; ctr > 0; ctr--) {
+                       check = true;
+                       do {
+                           System.out.println();
+                           noRepetition: { // Label for the in game loop
+                               String orientation = "" + random.nextInt(2);
+                               String letter;
+                               String num;
+
+                               // Completing the vertical ships
+                               if (orientation.equals("1")) {
+                                   letter = alphabet[random.nextInt(alphabet.length)];
+                                   num = numbers[random.nextInt(10 - ctr + 1)];
+
+                               } else { // Completing the horizontal ships
+                                   letter = alphabet[random.nextInt(10 - ctr + 1)];
+                                   num = numbers[random.nextInt(numbers.length)];
+                               }
+
+                               // This part finds the row and column the computer did and prints out the new
+                               // grid with the boat it placed
+                               letter += "  ";
+                               num += " ";
+                               int c = Arrays.binarySearch(gridC[0], letter);
+                               int r = 10;
+                               for (int n = 1; n < 11; n++) {
+                                   int hint = Arrays.binarySearch(gridC[n], num);
+                                   if (hint > -1) {
+                                       r = n;
+                                   }
+                               }
+                               System.out.println();
+                               if (orientation.equals("1")) {
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (gridC[r + loop][c].equals("[S]")) {// If boat croses another
+                                           int hello = loop; // Variable of the loop it's on
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridC[r + loop][c] = "[_]";
+
+                                           }
+                                           check = true;
+                                           break noRepetition;
+                                       }
+                                       if (gridC[r + loop][c].equals("[+]")) {// If boat comes too close to another
+                                           int hello = loop; // Variable of the loop it's on
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridC[r + loop][c] = "[_]";
+                                           }
+                                           check = true;
+                                           break noRepetition;
+                                       }
+
+                                       // Places values onto grid
+                                       gridC[r + loop][c] = "[S]";
+                                   }
+                                   // Code that puts +'s so the boats can't intersect or be too close for vertical
+                                   if (r > 1) {// Top
+                                       gridC[r - 1][c] = "[+]";
+                                       if (c > 1) {
+                                           gridC[r - 1][c - 1] = "[+]";
+                                       }
+                                       if (c < 10) {
+                                           gridC[r - 1][c + 1] = "[+]";
+                                       }
+                                   }
+                                   if (r + ctr < 10) {// Bottom
+                                       gridC[r + ctr][c] = "[+]";
+                                       if (c < 10) {
+                                           gridC[r + ctr][c + 1] = "[+]";
+                                       }
+                                       if (c > 1) {
+                                           gridC[r + ctr][c - 1] = "[+]";
+                                       }
+                                   }
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (c > 1) {// Left
+                                           gridC[r + loop][c - 1] = "[+]";
+                                       }
+                                       if (c < 10) {// Right
+                                           gridC[r + loop][c + 1] = "[+]";
+                                       }
+                                       check = false;
+                                   }
+
+                               } else {
+                                   for (int loop = 0; loop < ctr; loop++) {
+                                       if (gridC[r][c + loop].equals("[S]")) {// If boat croses another
+                                           int hello = loop; // Variable of the loop it's on
+                                           for (loop = 0; loop < hello; loop++) { // Hello used here so that the point
+                                                                                  // it's
+                                                                                  // on now
+                                                                                  // doesn't get replaced because
+                                                                                  // that's
+                                                                                  // where the
+                                                                                  // proper boat is everything before
+                                                                                  // isn't
+                                                                                  // meant
+                                                                                  // to be there
+                                               gridC[r][c + loop] = "[_]";
+
+                                           }
+                                           check = true;
+                                           break noRepetition;
+                                       }
+                                       if (gridC[r][c + loop].equals("[+]")) { // If boat is too close to another
+                                                                               // horizontally
+                                           int hello = loop;
+                                           for (loop = 0; loop < hello; loop++) {
+                                               gridC[r][c + loop] = "[_]";
+                                           }
+
+                                           check = true;
+                                           break noRepetition;
+                                       }
+
+                                       // Places values onto grid
+                                       gridC[r][c + loop] = "[S]";
+                                   }
+                                   // Code that puts +'s so the boats can't intersect or be too close for
+                                   // horizontal
+                                   for (int loop = 0; loop < ctr; loop++) {
+
+                                       if (r > 1) {// Top
+                                           gridC[r - 1][c + loop] = "[+]";
+                                       }
+                                       if (r < 10) {// Bottom
+                                           gridC[r + 1][c + loop] = "[+]";
+                                       }
+                                   }
+                                   if (c > 1) {// Left
+                                       gridC[r][c - 1] = "[+]";
+                                       if (r > 1) {
+                                           gridC[r - 1][c - 1] = "[+]";
+                                       }
+                                       if (r < 10) {
+                                           gridC[r + 1][c - 1] = "[+]";
+                                       }
+                                   }
+                                   if (c + ctr < 10) {// Right
+                                       gridC[r][c + ctr] = "[+]";
+                                       if (r > 1) {
+                                           gridC[r - 1][c + ctr] = "[+]";
+                                       }
+                                       if (r < 10) {
+                                           gridC[r + 1][c + ctr] = "[+]";
+                                       }
+                                   }
+                                   check = false;
+                               }
+                           }
+                       } while (check);
+                   }
+                   System.out.println("Done!");
+                   placement = false;
+
+                   // Attacking the computer's ship
+
+                   boolean game = true;
+                   boolean computer = true;
+                   System.out.println(
+                           "Now that both you and the computer have placed your ships you can now start attacking each other!");
+                   System.out.println("We'll start with you first!");
+                   while (game) { // When both player and computer are taking turns fighting
+
+                       turn: { // Player's turn
+                           round = true;
+                           ocean(gridF);
+                           System.out.println(
+                                   "Please enter the coordinate of where you'd like to drop the bomb.\n Enter the letter then number ONLY no spaces! Ex: A2\n(Any attempts to rehit a ship will just make you lose a turn so play properly.)");
+                           String attack = s.nextLine(); // Coordinate
+                           String letter = String.valueOf(attack.charAt(0)); // Letter and ensuring it's in the game
+                                                                             // board
+                           letter = letter.toUpperCase();
+                           boolean nice = false;
+                           for (int a = 0; a < alphabet.length; a++) {
+                               if (letter.equals(alphabet[a])) {
+                                   nice = true;
+                               }
+                           }
+                           if (nice == false) {
+                               System.out.println("Please enter a valid letter and try again.");
+                               break turn;
+                           }
+
+                           String num = String.valueOf(attack.substring(1)); // Getting numberand ensuring it's in the
+                                                                             // game
+                                                                             // board
+                           boolean mean = false;
+                           for (int n = 0; n < numbers.length; n++) {
+                               if (num.equals(numbers[n])) {
+                                   mean = true;
+                               }
+                           }
+                           if (mean == false) {
+                               System.out.println("Please enter a valid number and try again.");
+                               check = true;
+                               break turn;
+                           }
+
+                           letter += "  ";
+                           num += " ";
+                           int c = Arrays.binarySearch(gridC[0], letter);
+                           int r = 10;
+                           for (int n = 1; n < 11; n++) {
+                               int hint = Arrays.binarySearch(gridC[n], num);
+                               if (hint > -1) {
+                                   r = n;
+                               }
+                           }
+                           if (gridC[r][c].equals("[S]")) {
+                               gridC[r][c] = "[X]";
+                               gridF[r][c] = "[X]"; // Adds an x to the grid the player can see
+                               ocean(gridF);
+
+                               int w = winner(gridC, gridP);
+                               if (w == 1) {
+                                   System.out.println(
+                                           "CONGRATULATIONS!!! You have officially won the Rodriguez Style battleship game!\nThank you for playing and if you'd like to play again enter 1 or else press anything else to exit");
+                                   String choice = s.nextLine();
+                                   if (choice.equals("1")) {
+                                       break battleship;
+                                   } else {
+                                       break exit;
+                                   }
+
+                               } else if (w == 2) {
+                                   System.out.println(
+                                           "Unfortunately you have lost the game and the computer has won :(\nThank you for playing and if you'd like to play again enter 1 or else press anything else to exit");
+                                   String choice = s.nextLine();
+                                   if (choice.equals("1")) {
+                                       break battleship;
+                                   } else {
+                                       break exit;
+                                   }
+                               }
+                               System.out
+                                       .println("You hit a ship/or a part of it! Keep going and try to get another!");
+                               break turn;
+                           } else if (gridC[r][c].equals("[X]")) {
+                               ocean(gridF);
+                               System.out.println(
+                                       "You tried to hit a ship you already got and now have lost a turn... Time for computer to go ");
+                               TimeUnit.MILLISECONDS.sleep(4000);
+                               computer = true;
+                               round = false;
+                           } else {
+                               gridF[r][c] = "[O]";
+                               ocean(gridF);
+                               System.out.println(
+                                       "Unfortunately you didn't hit a ship and now it's the computer's turn ");
+                               TimeUnit.MILLISECONDS.sleep(3000);
+                               computer = true;
+                               round = false;
+                           }
+
+                           while (computer) { // The computer's turn to shoot a bomb onto player
+                               turn2: {
+                                   String letterC = alphabet[random.nextInt(alphabet.length)];
+                                   String numC = numbers[random.nextInt(numbers.length)];
+                                   letterC += "  ";
+                                   numC += " ";
+                                   int cC = Arrays.binarySearch(gridP[0], letterC);
+                                   int rC = 10;
+                                   for (int n = 1; n < 11; n++) {
+                                       int hint = Arrays.binarySearch(gridP[n], numC);
+                                       if (hint > -1) {
+                                           rC = n;
+                                       }
+                                   }
+                                   if (gridP[rC][cC].equals("[S]")) {
+                                       gridP[rC][cC] = "[X]"; // Adds an x to the player's grid to notify them the
+                                                              // computer
+                                                              // has hit their ship
+
+                                       int w = winner(gridC, gridP);
+                                       if (w == 1) {
+                                           System.out.println(
+                                                   "CONGRATULATIONS!!! You have officially won the Rodriguez Style battleship game!\nThank you for playing and if you'd like to play again enter 1 or else press anything else to exit");
+                                           String choice = s.nextLine();
+                                           if (choice.equals("1")) {
+                                               break battleship;
+                                           } else {
+                                               break exit;
+                                           }
+
+                                       } else if (w == 2) {
+                                           System.out.println(
+                                                   "Unfortunately you have lost the game and the computer has won :(\nThank you for playing and if you'd like to play again enter 1 or else press anything else to exit");
+                                           String choice = s.nextLine();
+                                           if (choice.equals("1")) {
+                                               break battleship;
+                                           } else {
+                                               break exit;
+                                           }
+                                       }
+                                       System.out.println(
+                                               "The computer has hitten your ship! It will now take another turn");
+                                       TimeUnit.MILLISECONDS.sleep(2000);
+                                       break turn2;
+                                   } else if (gridP[rC][cC].equals("[O]") || gridP[rC][cC].equals("[X]")) {
+                                       break turn2;
+                                   } else {
+                                       gridP[rC][cC] = "[O]";
+                                       ocean(gridP);
+                                       System.out.println("The computer has missed and now it's your turn");
+                                       TimeUnit.MILLISECONDS.sleep(3000);
+                                       computer = false;
+                                   }
+                               } // turn 2 labeled loop
+
+                           } // While computer loop
+                       } // Player's trun labeled
+                   } // While loop game
+               } // end of battleship labeled loop
+
+           } // end of battleship while loop
+       }
+   }
+
+   // Method that sets up the basic skeleton of the grid with letters and numbers
+   public static String[][] gridOut() {
+       String grid[][] = new String[11][11];
+
+       grid[0][0] = "   ";
+       grid[0][1] = "A  ";
+       grid[0][2] = "B  ";
+       grid[0][3] = "C  ";
+       grid[0][4] = "D  ";
+       grid[0][5] = "E  ";
+       grid[0][6] = "F  ";
+       grid[0][7] = "G  ";
+       grid[0][8] = "H  ";
+       grid[0][9] = "I  ";
+       grid[0][10] = "J  ";
+       for (int ctr = 1; ctr < 11; ctr++) {
+           Arrays.fill(grid[ctr], "[_]");
+       }
+
+       for (int ctr = 1; ctr < grid.length; ctr++) {
+
+           String num = Integer.toString(ctr);
+           if (ctr == 10) {
+               grid[ctr][0] = num;
+           } else {
+               grid[ctr][0] = num + " ";
+           }
+
+       }
+       return grid;
+   }
+
+   // Method that prints out the grids needed for the game
+   public static void ocean(String a[][]) {
+       if (!round) {
+           System.out.println(
+                   "Your board:\nS = your Ship");
+
+           if (placement) {
+               System.out.println("+ = cannot place boat here");
+           }
+           System.out.println("X = computer hit\nO = computer missed");
+       } else {
+           System.out.println(
+                   "Computer's board (your POV):\nX = Ship you hit\nO = shot you missed");
+       }
+
+       for (int row = 0; row < a.length; row++) {
+           for (int col = 0; col < a[row].length; col++) {
+               if (!placement && a[row][col].equals("[+]")) {
+                   a[row][col] = "[_]";
+               }
+               System.out.print(a[row][col] + " ");
+           }
+           System.out.println();
+
+       }
+   }
+
+   // Method that checks if someone has won
+   public static int winner(String a[][], String b[][]) {
+       // First is computer's grid entered so if no ships left then player wins, and
+       // second grid entered is player's and if empty then computer wins
+       int counter1 = 0;
+       for (int row = 0; row < a.length; row++) {
+           for (int col = 0; col < a[row].length; col++) {
+               if (a[row][col].equals("[S]")) {
+                   counter1++;
+               }
+           }
+       }
+       if (counter1 == 0) {
+           return 1;
+       }
+       int counter2 = 0;
+       for (int row = 0; row < b.length; row++) {
+           for (int col = 0; col < b[row].length; col++) {
+               if (b[row][col].equals("[S]")) {
+                   counter2++;
+               }
+           }
+       }
+       if (counter2 == 0) {
+           return 2;
+       }
+       return 3;
+   }
+}
